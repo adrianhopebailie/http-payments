@@ -33,7 +33,7 @@ normative:
 informative:
     HTTP-ILP:
         title: "HTTP-ILP"
-        target: https://github.com/interledger/rfcs/blob/58d8dcb015b160a381313126fa3065c64406db05/0014-http-ilp/0014-http-ilp.md
+        target: https://github.com/interledger/rfcs/blob/master/0014-http-ilp/0014-http-ilp.md
         author:
             organization: Interledger Community Group
         date: 2017-10
@@ -70,7 +70,7 @@ The key words "MUST", "MUST NOT", "REQUIRED", "SHALL", "SHALL NOT", "SHOULD", "S
 
 A payment method is a way that the payee can be paid. Examples include, via credit card, bank wire transfer, or Bitcoin. 
 
-A payment method is identified by a payment method identifier as specified in the [Payment Method Identifiers specification](W3C.CR-payment-method-id-20170914). This is either a standardized short-string, identified in a registry maintained by the W3C Web Payments WG, or a URL.
+A payment method is identified by a payment method identifier as specified in the [Payment Method Identifiers specification](#W3C.CR-payment-method-id-20170914). This is either a standardized short-string, identified in a registry maintained by the W3C Web Payments WG, or a URL.
 
 The most common case will be for the URL form to be used. In cases where there is no authority responsible for the payment method that can host the payment method URL, the WG will consider adding a new identifier for the payment method to the registry.
 
@@ -84,19 +84,26 @@ The HTTP Status Code, 402 (Payment Required) is currently defined in [RFC7231](#
 
 The body of the "Pay" header is defined as follows:
 
-    Pay: <payment-method-identifier> <amount> <address> <payment-method-data>
+    Pay = 1#( payment-method-identifier RWS payment-amount RWS payment-address RWS payment-method-data )
 
-Multiple "Pay" headers MAY be present in an HTTP 402 response.
+    payment-method-identifier = token
+    payment-amount = 1*DIGIT
+    payment-address = token
+    payment-method-data -token
+
+    ;token is defined in [RFC7231](#RFC7231)
+
+The Pay field-value consists of a comma-separated list of payment requests for payment using different payment methods accepted by the sender.
 
 The fields in the header are:
 
-- payment-method:
+- payment-method-identifier:
 The payment method identifier for the accepted payment method. Either a standardized short-string or a URL.
 
-- amount:
-The amount that must be paid, expressed as an integer. The currency, scale and precision of the destination account are expected to be expressed in the account address.
+- payment-amount:
+The amount that must be paid, expressed as an integer. The currency, scale and precision of the destination account are expected to be expressed in the account address or interprted from the payment mthod data.
 
-- address:
+- payment-address:
 A payment-method specific payee address. For example, if the payment method is Bitcoin this would be a Bitcoin address.
 
 - payment-method-data:
@@ -108,9 +115,13 @@ An HTTP client that makes a paid-HTTP request, after paying for the request to b
 
 This mechanism can be employed by services wishing to accept payments without binding these to an HTTP session.
 
+    Pay-Token = token
+
 ## The "Pay-Balance" Header
 
 Ann HTTP Service that accepts payments may respond to any request with a "Pay-Balance" header. This contains an integer indicating the current balance of paid credit the client has with the HTTP service.
+
+    Pay-Balance = 1*DIGIT
 
 ## Flow
 
@@ -154,10 +165,29 @@ Server responds:
 
 # Security Considerations
 
-TBD
+Payment information MUST not be exchanged on a connection that is not secured end-to-end. Servers that receive any HTTP payment header over an insecure connection should reject the request. Clients that receive any HTTP Payment headers over an insecure connection MUST ignore the headers.
 
 # IANA Considerations
 
+## Header Field Registration
+
+   HTTP header fields are registered within the "Message Headers"
+   registry maintained at
+   <http://www.iana.org/assignments/message-headers/>.
+
+   This document defines the following new HTTP header fields.
+
+   +-------------------+----------+----------+---------------+
+   | Header Field Name | Protocol | Status   | Reference     |
+   +-------------------+----------+----------+---------------+
+   | Pay               | http     | ?        | This Document |
+   | Pay-Token         | http     | ?        | This Document |
+   | Pay-Balance       | http     | ?        | This Document |
+   +-------------------+----------+----------+---------------+
+
+   The change controller is: "IETF (iesg@ietf.org) - Internet
+   Engineering Task Force".
+
 ## Payment Method Identifier Short-string Registry
 
-The W3C maintains a registry of standardized short-string payment method identifiers as part of the [Payment Method Identifier] specification. If standardized short-string identifiers are to be used for HTTP-Payments this may be better served as an IANA registry.
+The W3C maintains a registry of standardized short-string payment method identifiers as part of the [Payment Method Identifier](#W3C.CR-payment-method-id-20170914) specification. If standardized short-string identifiers are to be used for HTTP-Payments this may be better served as an IANA registry.
