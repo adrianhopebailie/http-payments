@@ -2,7 +2,7 @@
 coding: utf-8
 
 title: HTTP-Payments
-docname: draft-hope-bailie-http-payments-00
+docname: draft-hope-bailie-http-payments-01
 category: std
 
 pi: [toc, sortrefs, symrefs, comments]

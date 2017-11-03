@@ -9,7 +9,7 @@ Expires: May 7, 2018
 
 
                              HTTP-Payments
-                   draft-hope-bailie-http-payments-00
+                   draft-hope-bailie-http-payments-01
 
 Abstract
 
