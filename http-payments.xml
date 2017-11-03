@@ -35,7 +35,7 @@
       </address>
     </author>
 
-    <date year="2017" month="October" day="31"/>
+    <date year="2017" month="November" day="03"/>
 
     <area>dispatch</area>
     
@@ -89,7 +89,7 @@
 
 <t>A payment method is a way that the payee can be paid. Examples include, via credit card, bank wire transfer, or Bitcoin.</t>
 
-<t>A payment method is identified by a payment method identifier as specified in the <eref target="W3C.CR-payment-method-id-20170914">Payment Method Identifiers specification</eref>. This is either a standardized short-string, identified in a registry maintained by the W3C Web Payments WG, or a URL.</t>
+<t>A payment method is identified by a payment method identifier as specified in the <xref target="W3C.CR-payment-method-id-20170914">Payment Method Identifiers specification</xref>. This is either a standardized short-string, identified in a registry maintained by the W3C Web Payments WG, or a URL.</t>
 
 <t>The most common case will be for the URL form to be used. In cases where there is no authority responsible for the payment method that can host the payment method URL, the WG will consider adding a new identifier for the payment method to the registry.</t>
 
@@ -105,19 +105,26 @@
 <t>The body of the "Pay" header is defined as follows:</t>
 
 <figure><artwork><![CDATA[
-Pay: <payment-method-identifier> <amount> <address> <payment-method-data>
+Pay = 1#( payment-method-identifier RWS payment-amount RWS payment-address RWS payment-method-data )
+
+payment-method-identifier = token
+payment-amount = 1*DIGIT
+payment-address = token
+payment-method-data -token
+
+;token is defined in [RFC7231](#RFC7231)
 ]]></artwork></figure>
 
-<t>Multiple "Pay" headers MAY be present in an HTTP 402 response.</t>
+<t>The Pay field-value consists of a comma-separated list of payment requests for payment using different payment methods accepted by the sender.</t>
 
 <t>The fields in the header are:</t>
 
 <t><list style="symbols">
-  <t>payment-method:
+  <t>payment-method-identifier:
 The payment method identifier for the accepted payment method. Either a standardized short-string or a URL.</t>
-  <t>amount:
-The amount that must be paid, expressed as an integer. The currency, scale and precision of the destination account are expected to be expressed in the account address.</t>
-  <t>address:
+  <t>payment-amount:
+The amount that must be paid, expressed as an integer. The currency, scale and precision of the destination account are expected to be expressed in the account address or interprted from the payment mthod data.</t>
+  <t>payment-address:
 A payment-method specific payee address. For example, if the payment method is Bitcoin this would be a Bitcoin address.</t>
   <t>payment-method-data:
 Payment method specific data. This is either a URI identifying the data or, if it is small enough, is the data itself, BASE64URL encoded as described in <xref target="RFC4648"></xref>, Section 5.</t>
@@ -130,10 +137,18 @@ Payment method specific data. This is either a URI identifying the data or, if i
 
 <t>This mechanism can be employed by services wishing to accept payments without binding these to an HTTP session.</t>
 
+<figure><artwork><![CDATA[
+Pay-Token = token
+]]></artwork></figure>
+
 </section>
 <section anchor="the-pay-balance-header" title="The &quot;Pay-Balance&quot; Header">
 
 <t>Ann HTTP Service that accepts payments may respond to any request with a "Pay-Balance" header. This contains an integer indicating the current balance of paid credit the client has with the HTTP service.</t>
+
+<figure><artwork><![CDATA[
+Pay-Balance = 1*DIGIT
+]]></artwork></figure>
 
 </section>
 <section anchor="flow" title="Flow">
@@ -203,7 +218,7 @@ Pay-Balance: 0
 
     <references title='Informative References'>
 
-<reference anchor="HTTP-ILP" target="https://github.com/interledger/rfcs/blob/58d8dcb015b160a381313126fa3065c64406db05/0014-http-ilp/0014-http-ilp.md">
+<reference anchor="HTTP-ILP" target="https://github.com/interledger/rfcs/blob/master/0014-http-ilp/0014-http-ilp.md">
   <front>
     <title>HTTP-ILP</title>
     <author >
@@ -219,14 +234,45 @@ Pay-Balance: 0
 
 <section anchor="security-considerations" title="Security Considerations">
 
-<t>TBD</t>
+<t>Payment information MUST not be exchanged on a connection that is not secured end-to-end. Servers that receive any HTTP payment header over an insecure connection should reject the request. Clients that receive any HTTP Payment headers over an insecure connection MUST ignore the headers.</t>
 
 </section>
 <section anchor="iana-considerations" title="IANA Considerations">
 
+<section anchor="header-field-registration" title="Header Field Registration">
+
+<t>HTTP header fields are registered within the "Message Headers"
+   registry maintained at
+   <eref target="http://www.iana.org/assignments/message-headers/">http://www.iana.org/assignments/message-headers/</eref>.</t>
+
+<t>This document defines the following new HTTP header fields.</t>
+
+<texttable>
+      <ttcol align='left'>Header Field Name</ttcol>
+      <ttcol align='left'>Protocol</ttcol>
+      <ttcol align='left'>Status</ttcol>
+      <ttcol align='left'>Reference</ttcol>
+      <c>Pay</c>
+      <c>http</c>
+      <c>?</c>
+      <c>This Document</c>
+      <c>Pay-Token</c>
+      <c>http</c>
+      <c>?</c>
+      <c>This Document</c>
+      <c>Pay-Balance</c>
+      <c>http</c>
+      <c>?</c>
+      <c>This Document</c>
+</texttable>
+
+<t>The change controller is: "IETF (iesg@ietf.org) - Internet
+   Engineering Task Force".</t>
+
+</section>
 <section anchor="payment-method-identifier-short-string-registry" title="Payment Method Identifier Short-string Registry">
 
-<t>The W3C maintains a registry of standardized short-string payment method identifiers as part of the [Payment Method Identifier] specification. If standardized short-string identifiers are to be used for HTTP-Payments this may be better served as an IANA registry.</t>
+<t>The W3C maintains a registry of standardized short-string payment method identifiers as part of the <xref target="W3C.CR-payment-method-id-20170914">Payment Method Identifier</xref> specification. If standardized short-string identifiers are to be used for HTTP-Payments this may be better served as an IANA registry.</t>
 
 </section>
 </section>
@@ -235,73 +281,82 @@ Pay-Balance: 0
   </back>
 
 <!-- ##markdown-source:
-H4sIAPSx91kAA61Z71Mbtxb9vn+FhnyBGdvYCZDU0+k8QkKghUAxNNMyTEe7
-K9sq69VW2oU4H97f/s69ktZrA828N480ZH9opatz7z33XLXf7yeZyXU5G4um
-nvbfJUmt60KNxcn19WX/Ui4XqqxdkpuslAs8zq2c1v25qVQ/lbrQqj+v66pf
-hYH94TDJZK1mxi7HwtV5klR6LG5rk/WEM7a2aupwtVz4i8ws+Lu7xC2krf/8
-uzG1cmNhptMkkVZJrKhdJetsnsimnhs7ThIh+vgrhC4x8nAgTsia92wNP/eW
-HuZWy/LJS2Ox1StdVYW/dzBJ1WPxZrQvzk1Zz8xC2aWY8GMekekae5lgrmMr
-y0y7zPBzq2balGNxdOiHmRyr/rA3Gu6F+6asCYWbCd9Xc1NiQH/zh1+qBSwc
-C8k2/8uyeQOAwy8bCwgJZjfe3X18fBx03ielsQtZ6wc15rFXx0d7B3vv2pu3
-r9+M/M2XN0eDo6voqb5VfzfK1f3Xw9Hb4Q+vnx+0UIA87+s8DBvtAX5dTtfX
-5FA5Pbv0d/QTYmgrvtlavZF2RnDH7cx0PW9S2squLmtlC5XPlN2108ztpoVJ
-d/ff5e/yLB2O9tPRwVC+eTd6gz+vD6byzfBgPzvY2xse5Olwf3c4HO35YNRF
-tX43WOStATGKROcHMSFL/Q1bIn+eruwQR4jPpkQAiE/WNFX7VY4YHwsCpT8a
-JgncKEpE7p/HSuWpzO6T5HqunXCVyvRUZzyzwAMEkZK2WAr1tVJWE8gIY5Fa
-ZCD+E/VciUdj75EAfA1/iC8qFTER+SUNnJE5ojY8imAWlTXIMlMMxGlNSyGi
-yhp/VS5kLW6fAdxHG+WyT+XdtVS+2/6vP9kZCNp42AJsQIZW2sKCdBmelWxw
-F+KshRgQ3caIudt+FS93PL4yRarKrE6SNWoSuXKZ1akCuGKhsjk86RYCISoq
-6RxhJZHkssylzfU32BKsFSEDok1zJXNlHSFPtEGQ7g1fY5SrTOkUHuY8jjyX
-1bQnNZcP2jSWPuHxGRAhk+q5pOkzhRQRrsnmMCHOM/C7Weg8BwMlrwgLa/Im
-oxDx6H3H6XNJm556z/qBhawpJ8Xh5alfHNinij551LlCuOWqKswSHyBiUmse
-He2UMAogeJgCMgNBVtyG5a8CTJgbTvkOi+z0gmkc6pzRU5kpXkqKR5U6XSsy
-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
-hCGpqqlAh37VNxiM4KqZ/w9WR8cggB0AAA==
+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
+iV+Btv0KUoXMSG7/sHfIHzugIxyK5SqynooixvGUilg6BOZm57CPWzQlwgSM
+tIo0rNy6rWvwrBSflDWRlA+CblEdIs7NjityMH9hGfabX1V6xs7F4QAg7hXq
+I/yWxb2GIuQ/AN1DDwgOauiVGN9P0rPJryev/z2/fnn88qer25/Tx7uTk/kv
+o+sj++P1eT76ZJV8OM9uNwl/KAY11FwNtOIvHOECTzUPueJrbJ8TTNaFymOL
+WkSKcq2KQc4hnf1lS7XS9FC8Wg3GM/XuVX5S/TF4e3b24tZd/vKrmY1+//HV
+hX24fnDq+ue78cPRi8GWkTct8nwwEOOKfGsHNkLw1wH+hPQM46WiE4mTcHhA
+vOjWRwD1lzYTohczFZXQ3OFnmI6wAwLMOPRiYsGBDpeHMdC6QO+VwJ+eYP03
+vmFgVuWPTEFuCEfzQDGJ33loqaYgaDuwFN4+Z++Jk13fSWoZ1y0Z7otCaM96
+Xhg+y4lz6GxidPzueAs4CHkurMQZ9mgQFXSsIvnrS7BU3F5o47BF4eMXhWhh
+2EZqvAQ7yrkKazr6irnrXEvSh+J/hIjDL7RaFhLDrY8fqeYFFXH9JS+XhG30
+/8kl06R1rhlP1VEBPh3ALIKHSdu68/zP7T2/wy8Pn8V1+GAIl+GcBkfehGpZ
+0XfOzzR964t0knz+2iXfs3Rsz9s/n4l8wuW/1k9pp2/iTtfTQ8X8l6fHevPP
+TWfsweEolqhKtgA4ndEMxd7odHIGtZ9y8x+08jO05oFI+ONmwf9rwCl+1lWK
+Wu+JdPfYUkL1zbnnybNYMW627MFFV+uPg9GxXPMUFSrlp9v+Jw8VHCZuKI99
+7NGfPiH+n46E26fIVM88rVVLjfq0noodLJLaH5MowWOXA0OmymOpHQ4C+TiC
+wn19SvpfV/b0pbgiAAA=
 
 -->
 

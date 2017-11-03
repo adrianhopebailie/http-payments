@@ -388,7 +388,8 @@
 <link href="#rfc.references.2" rel="Chapter" title="5.2 Informative References">
 <link href="#rfc.appendix.A" rel="Chapter" title="A Security Considerations">
 <link href="#rfc.appendix.B" rel="Chapter" title="B IANA Considerations">
-<link href="#rfc.appendix.B.1" rel="Chapter" title="B.1 Payment Method Identifier Short-string Registry">
+<link href="#rfc.appendix.B.1" rel="Chapter" title="B.1 Header Field Registration">
+<link href="#rfc.appendix.B.2" rel="Chapter" title="B.2 Payment Method Identifier Short-string Registry">
 <link href="#rfc.authors" rel="Chapter">
 
 
@@ -397,7 +398,7 @@
 
   <meta name="dct.creator" content="Hope-Bailie, A." />
   <meta name="dct.identifier" content="urn:ietf:id:draft-hope-bailie-http-payments-00" />
-  <meta name="dct.issued" scheme="ISO8601" content="2017-10-31" />
+  <meta name="dct.issued" scheme="ISO8601" content="2017-11-03" />
   <meta name="dct.abstract" content="HTTP-Payments describes a mechanism for passing a standardized payment request in the headers of an HTTP 402 response and the expected behaviour of HTTP clients that receive such a response." />
   <meta name="description" content="HTTP-Payments describes a mechanism for passing a standardized payment request in the headers of an HTTP 402 response and the expected behaviour of HTTP clients that receive such a response." />
 
@@ -418,10 +419,10 @@
 </tr>
 <tr>
 <td class="left">Intended status: Standards Track</td>
-<td class="right">October 31, 2017</td>
+<td class="right">November 03, 2017</td>
 </tr>
 <tr>
-<td class="left">Expires: May 4, 2018</td>
+<td class="left">Expires: May 7, 2018</td>
 <td class="right"></td>
 </tr>
 
@@ -441,7 +442,7 @@
 <p>This Internet-Draft is submitted in full conformance with the provisions of BCP 78 and BCP 79.</p>
 <p>Internet-Drafts are working documents of the Internet Engineering Task Force (IETF).  Note that other groups may also distribute working documents as Internet-Drafts.  The list of current Internet-Drafts is at https://datatracker.ietf.org/drafts/current/.</p>
 <p>Internet-Drafts are draft documents valid for a maximum of six months and may be updated, replaced, or obsoleted by other documents at any time.  It is inappropriate to use Internet-Drafts as reference material or to cite them other than as "work in progress."</p>
-<p>This Internet-Draft will expire on May 4, 2018.</p>
+<p>This Internet-Draft will expire on May 7, 2018.</p>
 <h1 id="rfc.copyrightnotice"><a href="#rfc.copyrightnotice">Copyright Notice</a></h1>
 <p>Copyright (c) 2017 IETF Trust and the persons identified as the document authors.  All rights reserved.</p>
 <p>This document is subject to BCP 78 and the IETF Trust's Legal Provisions Relating to IETF Documents (https://trustee.ietf.org/license-info) in effect on the date of publication of this document.  Please review these documents carefully, as they describe your rights and restrictions with respect to this document.  Code Components extracted from this document must include Simplified BSD License text as described in Section 4.e of the Trust Legal Provisions and are provided without warranty as described in the Simplified BSD License.</p>
@@ -479,7 +480,9 @@
 </li>
 <li>Appendix B.   <a href="#rfc.appendix.B">IANA Considerations</a>
 </li>
-<ul><li>B.1.   <a href="#rfc.appendix.B.1">Payment Method Identifier Short-string Registry</a>
+<ul><li>B.1.   <a href="#rfc.appendix.B.1">Header Field Registration</a>
+</li>
+<li>B.2.   <a href="#rfc.appendix.B.2">Payment Method Identifier Short-string Registry</a>
 </li>
 </ul><li><a href="#rfc.authors">Author's Address</a>
 </li>
@@ -503,7 +506,7 @@
 <a href="#rfc.section.3">3.</a> <a href="#payment-methods" id="payment-methods">Payment Methods</a>
 </h1>
 <p id="rfc.section.3.p.1">A payment method is a way that the payee can be paid. Examples include, via credit card, bank wire transfer, or Bitcoin.</p>
-<p id="rfc.section.3.p.2">A payment method is identified by a payment method identifier as specified in the <a href="W3C.CR-payment-method-id-20170914">Payment Method Identifiers specification</a>. This is either a standardized short-string, identified in a registry maintained by the W3C Web Payments WG, or a URL.</p>
+<p id="rfc.section.3.p.2">A payment method is identified by a payment method identifier as specified in the <a href="#W3C.CR-payment-method-id-20170914" class="xref">Payment Method Identifiers specification</a>. This is either a standardized short-string, identified in a registry maintained by the W3C Web Payments WG, or a URL.</p>
 <p id="rfc.section.3.p.3">The most common case will be for the URL form to be used. In cases where there is no authority responsible for the payment method that can host the payment method URL, the WG will consider adding a new identifier for the payment method to the registry.</p>
 <p id="rfc.section.3.p.4">Payment methods define the data that the payer and payee need to exchange, to complete a payment, and the process by which this occurs.</p>
 <h1 id="rfc.section.4">
@@ -515,16 +518,23 @@
 </h1>
 <p id="rfc.section.4.1.p.1">The body of the "Pay" header is defined as follows:</p>
 <pre>
-Pay: &lt;payment-method-identifier&gt; &lt;amount&gt; &lt;address&gt; &lt;payment-method-data&gt;
+Pay = 1#( payment-method-identifier RWS payment-amount RWS payment-address RWS payment-method-data )
+
+payment-method-identifier = token
+payment-amount = 1*DIGIT
+payment-address = token
+payment-method-data -token
+
+;token is defined in [RFC7231](#RFC7231)
 </pre>
-<p id="rfc.section.4.1.p.2">Multiple "Pay" headers MAY be present in an HTTP 402 response.</p>
+<p id="rfc.section.4.1.p.2">The Pay field-value consists of a comma-separated list of payment requests for payment using different payment methods accepted by the sender.</p>
 <p id="rfc.section.4.1.p.3">The fields in the header are:</p>
 <p></p>
 
 <ul>
-<li>payment-method: The payment method identifier for the accepted payment method. Either a standardized short-string or a URL.</li>
-<li>amount: The amount that must be paid, expressed as an integer. The currency, scale and precision of the destination account are expected to be expressed in the account address.</li>
-<li>address: A payment-method specific payee address. For example, if the payment method is Bitcoin this would be a Bitcoin address.</li>
+<li>payment-method-identifier: The payment method identifier for the accepted payment method. Either a standardized short-string or a URL.</li>
+<li>payment-amount: The amount that must be paid, expressed as an integer. The currency, scale and precision of the destination account are expected to be expressed in the account address or interprted from the payment mthod data.</li>
+<li>payment-address: A payment-method specific payee address. For example, if the payment method is Bitcoin this would be a Bitcoin address.</li>
 <li>payment-method-data: Payment method specific data. This is either a URI identifying the data or, if it is small enough, is the data itself, BASE64URL encoded as described in <a href="#RFC4648" class="xref">[RFC4648]</a>, Section 5.</li>
 </ul>
 <h1 id="rfc.section.4.2">
@@ -532,10 +542,16 @@ Pay: &lt;payment-method-identifier&gt; &lt;amount&gt; &lt;address&gt; &lt;paymen
 </h1>
 <p id="rfc.section.4.2.p.1">An HTTP client that makes a paid-HTTP request, after paying for the request to be processed, MAY attach a "Pay-Token" header with a token referencing the payment.</p>
 <p id="rfc.section.4.2.p.2">This mechanism can be employed by services wishing to accept payments without binding these to an HTTP session.</p>
+<pre>
+Pay-Token = token
+</pre>
 <h1 id="rfc.section.4.3">
 <a href="#rfc.section.4.3">4.3.</a> <a href="#the-pay-balance-header" id="the-pay-balance-header">The "Pay-Balance" Header</a>
 </h1>
 <p id="rfc.section.4.3.p.1">Ann HTTP Service that accepts payments may respond to any request with a "Pay-Balance" header. This contains an integer indicating the current balance of paid credit the client has with the HTTP service.</p>
+<pre>
+Pay-Balance = 1*DIGIT
+</pre>
 <h1 id="rfc.section.4.4">
 <a href="#rfc.section.4.4">4.4.</a> <a href="#flow" id="flow">Flow</a>
 </h1>
@@ -601,19 +617,53 @@ Pay-Balance: 0
 <table><tbody><tr>
 <td class="reference"><b id="HTTP-ILP">[HTTP-ILP]</b></td>
 <td class="top">
-<a>Interledger Community Group</a>, "<a href="https://github.com/interledger/rfcs/blob/58d8dcb015b160a381313126fa3065c64406db05/0014-http-ilp/0014-http-ilp.md">HTTP-ILP</a>", October 2017.</td>
+<a>Interledger Community Group</a>, "<a href="https://github.com/interledger/rfcs/blob/master/0014-http-ilp/0014-http-ilp.md">HTTP-ILP</a>", October 2017.</td>
 </tr></tbody></table>
 <h1 id="rfc.appendix.A">
 <a href="#rfc.appendix.A">Appendix A.</a> <a href="#security-considerations" id="security-considerations">Security Considerations</a>
 </h1>
-<p id="rfc.section.A.p.1">TBD</p>
+<p id="rfc.section.A.p.1">Payment information MUST not be exchanged on a connection that is not secured end-to-end. Servers that receive any HTTP payment header over an insecure connection should reject the request. Clients that receive any HTTP Payment headers over an insecure connection MUST ignore the headers.</p>
 <h1 id="rfc.appendix.B">
 <a href="#rfc.appendix.B">Appendix B.</a> <a href="#iana-considerations" id="iana-considerations">IANA Considerations</a>
 </h1>
 <h1 id="rfc.appendix.B.1">
-<a href="#rfc.appendix.B.1">B.1.</a> <a href="#payment-method-identifier-short-string-registry" id="payment-method-identifier-short-string-registry">Payment Method Identifier Short-string Registry</a>
+<a href="#rfc.appendix.B.1">B.1.</a> <a href="#header-field-registration" id="header-field-registration">Header Field Registration</a>
 </h1>
-<p id="rfc.section.B.1.p.1">The W3C maintains a registry of standardized short-string payment method identifiers as part of the [Payment Method Identifier] specification. If standardized short-string identifiers are to be used for HTTP-Payments this may be better served as an IANA registry.</p>
+<p id="rfc.section.B.1.p.1">HTTP header fields are registered within the "Message Headers" registry maintained at <a href="http://www.iana.org/assignments/message-headers/">http://www.iana.org/assignments/message-headers/</a>.</p>
+<p id="rfc.section.B.1.p.2">This document defines the following new HTTP header fields.</p>
+<table cellpadding="3" cellspacing="0" class="tt full center">
+<thead><tr>
+<th class="left">Header Field Name</th>
+<th class="left">Protocol</th>
+<th class="left">Status</th>
+<th class="left">Reference</th>
+</tr></thead>
+<tbody>
+<tr>
+<td class="left">Pay</td>
+<td class="left">http</td>
+<td class="left">?</td>
+<td class="left">This Document</td>
+</tr>
+<tr>
+<td class="left">Pay-Token</td>
+<td class="left">http</td>
+<td class="left">?</td>
+<td class="left">This Document</td>
+</tr>
+<tr>
+<td class="left">Pay-Balance</td>
+<td class="left">http</td>
+<td class="left">?</td>
+<td class="left">This Document</td>
+</tr>
+</tbody>
+</table>
+<p id="rfc.section.B.1.p.3">The change controller is: "IETF (iesg@ietf.org) - Internet Engineering Task Force".</p>
+<h1 id="rfc.appendix.B.2">
+<a href="#rfc.appendix.B.2">B.2.</a> <a href="#payment-method-identifier-short-string-registry" id="payment-method-identifier-short-string-registry">Payment Method Identifier Short-string Registry</a>
+</h1>
+<p id="rfc.section.B.2.p.1">The W3C maintains a registry of standardized short-string payment method identifiers as part of the <a href="#W3C.CR-payment-method-id-20170914" class="xref">Payment Method Identifier</a> specification. If standardized short-string identifiers are to be used for HTTP-Payments this may be better served as an IANA registry.</p>
 <h1 id="rfc.authors"><a href="#rfc.authors">Author's Address</a></h1>
 <div class="avoidbreak">
   <address class="vcard">

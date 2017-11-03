@@ -4,8 +4,8 @@
 
 Network Working Group                                     A. Hope-Bailie
 Internet-Draft                                                    Ripple
-Intended status: Standards Track                        October 31, 2017
-Expires: May 4, 2018
+Intended status: Standards Track                       November 03, 2017
+Expires: May 7, 2018
 
 
                              HTTP-Payments
@@ -41,7 +41,7 @@ Status of This Memo
    time.  It is inappropriate to use Internet-Drafts as reference
    material or to cite them other than as "work in progress."
 
-   This Internet-Draft will expire on May 4, 2018.
+   This Internet-Draft will expire on May 7, 2018.
 
 Copyright Notice
 
@@ -53,9 +53,9 @@ Copyright Notice
 
 
 
-Hope-Bailie                Expires May 4, 2018                  [Page 1]
+Hope-Bailie                Expires May 7, 2018                  [Page 1]
 
-Internet-Draft                HTTP-Payments                 October 2017
+Internet-Draft                HTTP-Payments                November 2017
 
 
    (https://trustee.ietf.org/license-info) in effect on the date of
@@ -75,16 +75,17 @@ Table of Contents
      4.1.  The "Pay" Header  . . . . . . . . . . . . . . . . . . . .   3
      4.2.  The "Pay-Token" Header  . . . . . . . . . . . . . . . . .   4
      4.3.  The "Pay-Balance" Header  . . . . . . . . . . . . . . . .   4
-     4.4.  Flow  . . . . . . . . . . . . . . . . . . . . . . . . . .   4
+     4.4.  Flow  . . . . . . . . . . . . . . . . . . . . . . . . . .   5
      4.5.  Example . . . . . . . . . . . . . . . . . . . . . . . . .   5
-   5.  References  . . . . . . . . . . . . . . . . . . . . . . . . .   5
-     5.1.  Normative References  . . . . . . . . . . . . . . . . . .   5
+   5.  References  . . . . . . . . . . . . . . . . . . . . . . . . .   6
+     5.1.  Normative References  . . . . . . . . . . . . . . . . . .   6
      5.2.  Informative References  . . . . . . . . . . . . . . . . .   6
      5.3.  URIs  . . . . . . . . . . . . . . . . . . . . . . . . . .   6
-   Appendix A.  Security Considerations  . . . . . . . . . . . . . .   6
-   Appendix B.  IANA Considerations  . . . . . . . . . . . . . . . .   6
-     B.1.  Payment Method Identifier Short-string Registry . . . . .   6
-   Author's Address  . . . . . . . . . . . . . . . . . . . . . . . .   6
+   Appendix A.  Security Considerations  . . . . . . . . . . . . . .   7
+   Appendix B.  IANA Considerations  . . . . . . . . . . . . . . . .   7
+     B.1.  Header Field Registration . . . . . . . . . . . . . . . .   7
+     B.2.  Payment Method Identifier Short-string Registry . . . . .   7
+   Author's Address  . . . . . . . . . . . . . . . . . . . . . . . .   7
 
 1.  Introduction
 
@@ -104,15 +105,17 @@ Table of Contents
    The critical portion of the payment request is the set of, one or
    more, supported payment methods and associated payment-method-
    specific data.  HTTP-Payments defines a mechaism by which these are
+
+
+
+
+Hope-Bailie                Expires May 7, 2018                  [Page 2]
+
+Internet-Draft                HTTP-Payments                November 2017
+
+
    expressed in the response headers of an HTTP request for which the
    server requires a payment.
-
-
-
-Hope-Bailie                Expires May 4, 2018                  [Page 2]
-
-Internet-Draft                HTTP-Payments                 October 2017
-
 
    In the website and user-agent scenario, when handling the payment
    request, the user-agent will prompt the user to pick one of the
@@ -133,9 +136,10 @@ Internet-Draft                HTTP-Payments                 October 2017
    include, via credit card, bank wire transfer, or Bitcoin.
 
    A payment method is identified by a payment method identifier as
-   specified in the Payment Method Identifiers specification [2].  This
-   is either a standardized short-string, identified in a registry
-   maintained by the W3C Web Payments WG, or a URL.
+   specified in the Payment Method Identifiers specification
+   [W3C.CR-payment-method-id-20170914].  This is either a standardized
+   short-string, identified in a registry maintained by the W3C Web
+   Payments WG, or a URL.
 
    The most common case will be for the URL form to be used.  In cases
    where there is no authority responsible for the payment method that
@@ -157,28 +161,42 @@ Internet-Draft                HTTP-Payments                 October 2017
 
    The body of the "Pay" header is defined as follows:
 
-Pay: <payment-method-identifier> <amount> <address> <payment-method-data>
 
-   Multiple "Pay" headers MAY be present in an HTTP 402 response.
+
+
+
+Hope-Bailie                Expires May 7, 2018                  [Page 3]
+
+Internet-Draft                HTTP-Payments                November 2017
+
+
+Pay = 1#( payment-method-identifier RWS payment-amount RWS payment-address RWS payment-method-data )
+
+payment-method-identifier = token
+payment-amount = 1*DIGIT
+payment-address = token
+payment-method-data -token
+
+;token is defined in [RFC7231](#RFC7231)
+
+   The Pay field-value consists of a comma-separated list of payment
+   requests for payment using different payment methods accepted by the
+   sender.
 
    The fields in the header are:
 
+   o  payment-method-identifier: The payment method identifier for the
+      accepted payment method.  Either a standardized short-string or a
+      URL.
 
+   o  payment-amount: The amount that must be paid, expressed as an
+      integer.  The currency, scale and precision of the destination
+      account are expected to be expressed in the account address or
+      interprted from the payment mthod data.
 
-Hope-Bailie                Expires May 4, 2018                  [Page 3]
-
-Internet-Draft                HTTP-Payments                 October 2017
-
-
-   o  payment-method: The payment method identifier for the accepted
-      payment method.  Either a standardized short-string or a URL.
-
-   o  amount: The amount that must be paid, expressed as an integer.
-      The currency, scale and precision of the destination account are
-      expected to be expressed in the account address.
-
-   o  address: A payment-method specific payee address.  For example, if
-      the payment method is Bitcoin this would be a Bitcoin address.
+   o  payment-address: A payment-method specific payee address.  For
+      example, if the payment method is Bitcoin this would be a Bitcoin
+      address.
 
    o  payment-method-data: Payment method specific data.  This is either
       a URI identifying the data or, if it is small enough, is the data
@@ -193,11 +211,22 @@ Internet-Draft                HTTP-Payments                 October 2017
    This mechanism can be employed by services wishing to accept payments
    without binding these to an HTTP session.
 
+   Pay-Token = token
+
 4.3.  The "Pay-Balance" Header
 
    Ann HTTP Service that accepts payments may respond to any request
    with a "Pay-Balance" header.  This contains an integer indicating the
    current balance of paid credit the client has with the HTTP service.
+
+
+
+Hope-Bailie                Expires May 7, 2018                  [Page 4]
+
+Internet-Draft                HTTP-Payments                November 2017
+
+
+   Pay-Balance = 1*DIGIT
 
 4.4.  Flow
 
@@ -215,16 +244,6 @@ Internet-Draft                HTTP-Payments                 October 2017
    The payment-method specific data SHOULD be sufficient for the system
    processing the payment to reconcile the payment with the original
    HTTP request.
-
-
-
-
-
-
-Hope-Bailie                Expires May 4, 2018                  [Page 4]
-
-Internet-Draft                HTTP-Payments                 October 2017
-
 
    The client SHOULD receive a token in return for completeing the
    payment.  If the payment method used does return a token to the
@@ -253,6 +272,16 @@ Pay-Balance: 0
    Client makes the payment through an appropriate payment side-channel
    and then attempts the request again:
 
+
+
+
+
+
+Hope-Bailie                Expires May 7, 2018                  [Page 5]
+
+Internet-Draft                HTTP-Payments                November 2017
+
+
    POST /upload HTTP/1.1
    Host: myservice.example
    Pay-Token: 7y0SfeN7lCuq0GFF5UsMYZofIjJ7LrvPvsePVWSv450
@@ -275,13 +304,6 @@ Pay-Balance: 0
               DOI 10.17487/RFC7231, June 2014,
               <https://www.rfc-editor.org/info/rfc7231>.
 
-
-
-Hope-Bailie                Expires May 4, 2018                  [Page 5]
-
-Internet-Draft                HTTP-Payments                 October 2017
-
-
    [W3C.CR-payment-method-id-20170914]
               Bateman, A., Koch, Z., McElmurry, R., and M. Caceres,
               "Payment Method Identifiers", World Wide Web Consortium
@@ -299,28 +321,61 @@ Internet-Draft                HTTP-Payments                 October 2017
 
    [HTTP-ILP]
               Interledger Community Group, "HTTP-ILP", October 2017,
-              <https://github.com/interledger/rfcs/
-              blob/58d8dcb015b160a381313126fa3065c64406db05/0014-http-
-              ilp/0014-http-ilp.md>.
+              <https://github.com/interledger/rfcs/blob/
+              master/0014-http-ilp/0014-http-ilp.md>.
 
 5.3.  URIs
 
    [1] https://github.com/adrianhopebailie/http-payments
 
-   [2] W3C.CR-payment-method-id-20170914
+   [2] http://www.iana.org/assignments/message-headers/
+
+
+
+
+Hope-Bailie                Expires May 7, 2018                  [Page 6]
+
+Internet-Draft                HTTP-Payments                November 2017
+
 
 Appendix A.  Security Considerations
 
-   TBD
+   Payment information MUST not be exchanged on a connection that is not
+   secured end-to-end.  Servers that receive any HTTP payment header
+   over an insecure connection should reject the request.  Clients that
+   receive any HTTP Payment headers over an insecure connection MUST
+   ignore the headers.
 
 Appendix B.  IANA Considerations
 
-B.1.  Payment Method Identifier Short-string Registry
+B.1.  Header Field Registration
+
+   HTTP header fields are registered within the "Message Headers"
+   registry maintained at http://www.iana.org/assignments/message-
+   headers/ [2].
+
+   This document defines the following new HTTP header fields.
+
+         +-------------------+----------+--------+---------------+
+         | Header Field Name | Protocol | Status | Reference     |
+         +-------------------+----------+--------+---------------+
+         | Pay               | http     | ?      | This Document |
+         |                   |          |        |               |
+         | Pay-Token         | http     | ?      | This Document |
+         |                   |          |        |               |
+         | Pay-Balance       | http     | ?      | This Document |
+         +-------------------+----------+--------+---------------+
+
+   The change controller is: "IETF (iesg@ietf.org) - Internet
+   Engineering Task Force".
+
+B.2.  Payment Method Identifier Short-string Registry
 
    The W3C maintains a registry of standardized short-string payment
-   method identifiers as part of the [Payment Method Identifier]
-   specification.  If standardized short-string identifiers are to be
-   used for HTTP-Payments this may be better served as an IANA registry.
+   method identifiers as part of the Payment Method Identifier
+   [W3C.CR-payment-method-id-20170914] specification.  If standardized
+   short-string identifiers are to be used for HTTP-Payments this may be
+   better served as an IANA registry.
 
 Author's Address
 
@@ -333,9 +388,10 @@ Author's Address
 
 
 
-Hope-Bailie                Expires May 4, 2018                  [Page 6]
+
+Hope-Bailie                Expires May 7, 2018                  [Page 7]
 
-Internet-Draft                HTTP-Payments                 October 2017
+Internet-Draft                HTTP-Payments                November 2017
 
 
    Adrian Hope-Bailie
@@ -389,4 +445,4 @@ Internet-Draft                HTTP-Payments                 October 2017
 
 
 
-Hope-Bailie                Expires May 4, 2018                  [Page 7]
+Hope-Bailie                Expires May 7, 2018                  [Page 8]

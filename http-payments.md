@@ -177,13 +177,11 @@ Payment information MUST not be exchanged on a connection that is not secured en
 
    This document defines the following new HTTP header fields.
 
-   +-------------------+----------+----------+---------------+
    | Header Field Name | Protocol | Status   | Reference     |
-   +-------------------+----------+----------+---------------+
+   |-------------------|----------|----------|---------------|
    | Pay               | http     | ?        | This Document |
    | Pay-Token         | http     | ?        | This Document |
    | Pay-Balance       | http     | ?        | This Document |
-   +-------------------+----------+----------+---------------+
 
    The change controller is: "IETF (iesg@ietf.org) - Internet
    Engineering Task Force".
