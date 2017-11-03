@@ -104,15 +104,16 @@
 
 <t>The body of the "Pay" header is defined as follows:</t>
 
-<figure><artwork><![CDATA[
-Pay = 1#( payment-method-identifier RWS payment-amount RWS payment-address RWS payment-method-data )
+<figure><artwork type="abnf" align="left" name="pay-header-abnf"><![CDATA[
+    Pay = 1#( payment-method-identifier RWS payment-amount RWS payment-address [ RWS
+    payment-method-data ] )
 
-payment-method-identifier = token
-payment-amount = 1*DIGIT
-payment-address = token
-payment-method-data -token
+    payment-method-identifier = token
+    payment-amount = 1*DIGIT
+    payment-address = token
+    payment-method-data -token
 
-;token is defined in [RFC7231](#RFC7231)
+    ;token is defined in [RFC7231](#RFC7231)
 ]]></artwork></figure>
 
 <t>The Pay field-value consists of a comma-separated list of payment requests for payment using different payment methods accepted by the sender.</t>
@@ -127,7 +128,7 @@ The amount that must be paid, expressed as an integer. The currency, scale and p
   <t>payment-address:
 A payment-method specific payee address. For example, if the payment method is Bitcoin this would be a Bitcoin address.</t>
   <t>payment-method-data:
-Payment method specific data. This is either a URI identifying the data or, if it is small enough, is the data itself, BASE64URL encoded as described in <xref target="RFC4648"></xref>, Section 5.</t>
+Optional payment method specific data. This is either a URI identifying the data or, if it is small enough, is the data itself, BASE64URL encoded as described in <xref target="RFC4648"></xref>, Section 5.</t>
 </list></t>
 
 </section>
@@ -137,8 +138,8 @@ Payment method specific data. This is either a URI identifying the data or, if i
 
 <t>This mechanism can be employed by services wishing to accept payments without binding these to an HTTP session.</t>
 
-<figure><artwork><![CDATA[
-Pay-Token = token
+<figure><artwork type="abnf" align="left" name="pay-token-header-abnf"><![CDATA[
+    Pay-Token = token
 ]]></artwork></figure>
 
 </section>
@@ -146,8 +147,8 @@ Pay-Token = token
 
 <t>Ann HTTP Service that accepts payments may respond to any request with a "Pay-Balance" header. This contains an integer indicating the current balance of paid credit the client has with the HTTP service.</t>
 
-<figure><artwork><![CDATA[
-Pay-Balance = 1*DIGIT
+<figure><artwork type="abnf" align="left" name="pay-balance-header-abnf"><![CDATA[
+    Pay-Balance = 1*DIGIT
 ]]></artwork></figure>
 
 </section>
@@ -170,32 +171,32 @@ Pay-Balance = 1*DIGIT
 
 <t>Client requests access to a paid resource:</t>
 
-<figure><artwork><![CDATA[
-POST /upload HTTP/1.1
-Host: myservice.example
+<figure><artwork type="http" align="left" name="example-request"><![CDATA[
+    POST /upload HTTP/1.1
+    Host: myservice.example
 ]]></artwork></figure>
 
 <t>Server responds with payment request (and optionally indicates that the client has a zero balance):</t>
 
-<figure><artwork><![CDATA[
-HTTP/1.1 402 Payment Required
-Pay: http://interledger.org 10 us.nexus.ankita.~recv.filepay SkTcFTZCBKgP6A6QOUVcwWCCgYIP4rJPHlIzreavHdU
-Pay-Balance: 0
+<figure><artwork type="http" align="left" name="example-402-response"><![CDATA[
+    HTTP/1.1 402 Payment Required
+    Pay: http://interledger.org 10 us.nexus.ankita.~recv.filepay SkTcFTZCBKgP6A6QOUVcwWCCg
+    Pay-Balance: 0
 ]]></artwork></figure>
 
 <t>Client makes the payment through an appropriate payment side-channel and then attempts the request again:</t>
 
-<figure><artwork><![CDATA[
-POST /upload HTTP/1.1
-Host: myservice.example
-Pay-Token: 7y0SfeN7lCuq0GFF5UsMYZofIjJ7LrvPvsePVWSv450
+<figure><artwork type="http" align="left" name="example-request-2"><![CDATA[
+    POST /upload HTTP/1.1
+    Host: myservice.example
+    Pay-Token: 7y0SfeN7lCuq0GFF5UsMYZofIjJ7LrvPvsePVWSv450
 ]]></artwork></figure>
 
 <t>Server responds:</t>
 
-<figure><artwork><![CDATA[
-HTTP/1.1 200 Success
-Pay-Balance: 0  
+<figure><artwork type="http" align="left" name="example-200-response"><![CDATA[
+    HTTP/1.1 200 Success
+    Pay-Balance: 0  
 ]]></artwork></figure>
 
 </section>
@@ -281,82 +282,84 @@ Pay-Balance: 0
   </back>
 
 <!-- ##markdown-source:
-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
-wn19SvpfjvTirbgiAAA=
+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
 
 -->
 

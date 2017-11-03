@@ -74,18 +74,18 @@ Table of Contents
    4.  HTTP Status Code 402  . . . . . . . . . . . . . . . . . . . .   3
      4.1.  The "Pay" Header  . . . . . . . . . . . . . . . . . . . .   3
      4.2.  The "Pay-Token" Header  . . . . . . . . . . . . . . . . .   4
-     4.3.  The "Pay-Balance" Header  . . . . . . . . . . . . . . . .   4
+     4.3.  The "Pay-Balance" Header  . . . . . . . . . . . . . . . .   5
      4.4.  Flow  . . . . . . . . . . . . . . . . . . . . . . . . . .   5
      4.5.  Example . . . . . . . . . . . . . . . . . . . . . . . . .   5
    5.  References  . . . . . . . . . . . . . . . . . . . . . . . . .   6
      5.1.  Normative References  . . . . . . . . . . . . . . . . . .   6
      5.2.  Informative References  . . . . . . . . . . . . . . . . .   6
-     5.3.  URIs  . . . . . . . . . . . . . . . . . . . . . . . . . .   6
+     5.3.  URIs  . . . . . . . . . . . . . . . . . . . . . . . . . .   7
    Appendix A.  Security Considerations  . . . . . . . . . . . . . .   7
    Appendix B.  IANA Considerations  . . . . . . . . . . . . . . . .   7
      B.1.  Header Field Registration . . . . . . . . . . . . . . . .   7
      B.2.  Payment Method Identifier Short-string Registry . . . . .   7
-   Author's Address  . . . . . . . . . . . . . . . . . . . . . . . .   7
+   Author's Address  . . . . . . . . . . . . . . . . . . . . . . . .   8
 
 1.  Introduction
 
@@ -170,14 +170,15 @@ Hope-Bailie                Expires May 7, 2018                  [Page 3]
 Internet-Draft                HTTP-Payments                November 2017
 
 
-Pay = 1#( payment-method-identifier RWS payment-amount RWS payment-address RWS payment-method-data )
+    Pay = 1#( payment-method-identifier RWS payment-amount RWS payment-address [ RWS
+    payment-method-data ] )
 
-payment-method-identifier = token
-payment-amount = 1*DIGIT
-payment-address = token
-payment-method-data -token
+    payment-method-identifier = token
+    payment-amount = 1*DIGIT
+    payment-address = token
+    payment-method-data -token
 
-;token is defined in [RFC7231](#RFC7231)
+    ;token is defined in [RFC7231](#RFC7231)
 
    The Pay field-value consists of a comma-separated list of payment
    requests for payment using different payment methods accepted by the
@@ -198,9 +199,10 @@ payment-method-data -token
       example, if the payment method is Bitcoin this would be a Bitcoin
       address.
 
-   o  payment-method-data: Payment method specific data.  This is either
-      a URI identifying the data or, if it is small enough, is the data
-      itself, BASE64URL encoded as described in [RFC4648], Section 5.
+   o  payment-method-data: Optional payment method specific data.  This
+      is either a URI identifying the data or, if it is small enough, is
+      the data itself, BASE64URL encoded as described in [RFC4648],
+      Section 5.
 
 4.2.  The "Pay-Token" Header
 
@@ -211,13 +213,11 @@ payment-method-data -token
    This mechanism can be employed by services wishing to accept payments
    without binding these to an HTTP session.
 
-   Pay-Token = token
+       Pay-Token = token
 
-4.3.  The "Pay-Balance" Header
 
-   Ann HTTP Service that accepts payments may respond to any request
-   with a "Pay-Balance" header.  This contains an integer indicating the
-   current balance of paid credit the client has with the HTTP service.
+
+
 
 
 
@@ -226,7 +226,13 @@ Hope-Bailie                Expires May 7, 2018                  [Page 4]
 Internet-Draft                HTTP-Payments                November 2017
 
 
-   Pay-Balance = 1*DIGIT
+4.3.  The "Pay-Balance" Header
+
+   Ann HTTP Service that accepts payments may respond to any request
+   with a "Pay-Balance" header.  This contains an integer indicating the
+   current balance of paid credit the client has with the HTTP service.
+
+       Pay-Balance = 1*DIGIT
 
 4.4.  Flow
 
@@ -259,21 +265,15 @@ Internet-Draft                HTTP-Payments                November 2017
 
    Client requests access to a paid resource:
 
-   POST /upload HTTP/1.1
-   Host: myservice.example
+       POST /upload HTTP/1.1
+       Host: myservice.example
 
    Server responds with payment request (and optionally indicates that
    the client has a zero balance):
 
-HTTP/1.1 402 Payment Required
-Pay: http://interledger.org 10 us.nexus.ankita.~recv.filepay SkTcFTZCBKgP6A6QOUVcwWCCgYIP4rJPHlIzreavHdU
-Pay-Balance: 0
-
-   Client makes the payment through an appropriate payment side-channel
-   and then attempts the request again:
-
-
-
+    HTTP/1.1 402 Payment Required
+    Pay: http://interledger.org 10 us.nexus.ankita.~recv.filepay SkTcFTZCBKgP6A6QOUVcwWCCg
+    Pay-Balance: 0
 
 
 
@@ -282,14 +282,17 @@ Hope-Bailie                Expires May 7, 2018                  [Page 5]
 Internet-Draft                HTTP-Payments                November 2017
 
 
-   POST /upload HTTP/1.1
-   Host: myservice.example
-   Pay-Token: 7y0SfeN7lCuq0GFF5UsMYZofIjJ7LrvPvsePVWSv450
+   Client makes the payment through an appropriate payment side-channel
+   and then attempts the request again:
+
+       POST /upload HTTP/1.1
+       Host: myservice.example
+       Pay-Token: 7y0SfeN7lCuq0GFF5UsMYZofIjJ7LrvPvsePVWSv450
 
    Server responds:
 
-   HTTP/1.1 200 Success
-   Pay-Balance: 0
+       HTTP/1.1 200 Success
+       Pay-Balance: 0
 
 5.  References
 
@@ -324,11 +327,8 @@ Internet-Draft                HTTP-Payments                November 2017
               <https://github.com/interledger/rfcs/blob/
               master/0014-http-ilp/0014-http-ilp.md>.
 
-5.3.  URIs
 
-   [1] https://github.com/adrianhopebailie/http-payments
 
-   [2] http://www.iana.org/assignments/message-headers/
 
 
 
@@ -337,6 +337,12 @@ Hope-Bailie                Expires May 7, 2018                  [Page 6]
 
 Internet-Draft                HTTP-Payments                November 2017
 
+
+5.3.  URIs
+
+   [1] https://github.com/adrianhopebailie/http-payments
+
+   [2] http://www.iana.org/assignments/message-headers/
 
 Appendix A.  Security Considerations
 
@@ -377,12 +383,6 @@ B.2.  Payment Method Identifier Short-string Registry
    short-string identifiers are to be used for HTTP-Payments this may be
    better served as an IANA registry.
 
-Author's Address
-
-
-
-
-
 
 
 
@@ -394,6 +394,8 @@ Hope-Bailie                Expires May 7, 2018                  [Page 7]
 Internet-Draft                HTTP-Payments                November 2017
 
 
+Author's Address
+
    Adrian Hope-Bailie
    Ripple
    315 Montgomery Street
@@ -403,8 +405,6 @@ Internet-Draft                HTTP-Payments                November 2017
    Phone: -----------------
    Email: adrian@ripple.com
    URI:   https://www.ripple.com
-
-
 
 
 

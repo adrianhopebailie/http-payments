@@ -83,8 +83,10 @@ The HTTP Status Code, 402 (Payment Required) is currently defined in [RFC7231](#
 ## The "Pay" Header
 
 The body of the "Pay" header is defined as follows:
-
-    Pay = 1#( payment-method-identifier RWS payment-amount RWS payment-address RWS payment-method-data )
+    
+~~~ abnf
+    Pay = 1#( payment-method-identifier RWS payment-amount RWS payment-address [ RWS
+    payment-method-data ] )
 
     payment-method-identifier = token
     payment-amount = 1*DIGIT
@@ -92,6 +94,8 @@ The body of the "Pay" header is defined as follows:
     payment-method-data -token
 
     ;token is defined in [RFC7231](#RFC7231)
+~~~
+{: artwork-align="left" artwork-name="pay-header-abnf"}
 
 The Pay field-value consists of a comma-separated list of payment requests for payment using different payment methods accepted by the sender.
 
@@ -107,7 +111,7 @@ The amount that must be paid, expressed as an integer. The currency, scale and p
 A payment-method specific payee address. For example, if the payment method is Bitcoin this would be a Bitcoin address.
 
 - payment-method-data:
-Payment method specific data. This is either a URI identifying the data or, if it is small enough, is the data itself, BASE64URL encoded as described in [RFC4648](#RFC4648), Section 5.
+Optional payment method specific data. This is either a URI identifying the data or, if it is small enough, is the data itself, BASE64URL encoded as described in [RFC4648](#RFC4648), Section 5.
 
 ## The "Pay-Token" Header
 
@@ -115,13 +119,19 @@ An HTTP client that makes a paid-HTTP request, after paying for the request to b
 
 This mechanism can be employed by services wishing to accept payments without binding these to an HTTP session.
 
+~~~ abnf    
     Pay-Token = token
+~~~
+{: artwork-align="left" artwork-name="pay-token-header-abnf"}
 
 ## The "Pay-Balance" Header
 
 Ann HTTP Service that accepts payments may respond to any request with a "Pay-Balance" header. This contains an integer indicating the current balance of paid credit the client has with the HTTP service.
-
+    
+~~~ abnf
     Pay-Balance = 1*DIGIT
+~~~
+{: artwork-align="left" artwork-name="pay-balance-header-abnf"}
 
 ## Flow
 
@@ -141,25 +151,37 @@ The HTTP service MUST process the "Pay-Token" header and use this to reconcile t
 
 Client requests access to a paid resource:
 
+~~~ http
     POST /upload HTTP/1.1
     Host: myservice.example
+~~~
+{: artwork-align="left" artwork-name="example-request"}
 
 Server responds with payment request (and optionally indicates that the client has a zero balance):
-
+    
+~~~ http
     HTTP/1.1 402 Payment Required
-    Pay: http://interledger.org 10 us.nexus.ankita.~recv.filepay SkTcFTZCBKgP6A6QOUVcwWCCgYIP4rJPHlIzreavHdU
+    Pay: http://interledger.org 10 us.nexus.ankita.~recv.filepay SkTcFTZCBKgP6A6QOUVcwWCCg
     Pay-Balance: 0
+~~~
+{: artwork-align="left" artwork-name="example-402-response"}
 
 Client makes the payment through an appropriate payment side-channel and then attempts the request again:
-
+    
+~~~ http
     POST /upload HTTP/1.1
     Host: myservice.example
     Pay-Token: 7y0SfeN7lCuq0GFF5UsMYZofIjJ7LrvPvsePVWSv450
+~~~
+{: artwork-align="left" artwork-name="example-request-2"}
 
 Server responds:
-
+    
+~~~ http
     HTTP/1.1 200 Success
     Pay-Balance: 0  
+~~~
+{: artwork-align="left" artwork-name="example-200-response"}
 
 --- back
 

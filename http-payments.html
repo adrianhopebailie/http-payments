@@ -518,14 +518,15 @@
 </h1>
 <p id="rfc.section.4.1.p.1">The body of the "Pay" header is defined as follows:</p>
 <pre>
-Pay = 1#( payment-method-identifier RWS payment-amount RWS payment-address RWS payment-method-data )
+    Pay = 1#( payment-method-identifier RWS payment-amount RWS payment-address [ RWS
+    payment-method-data ] )
 
-payment-method-identifier = token
-payment-amount = 1*DIGIT
-payment-address = token
-payment-method-data -token
+    payment-method-identifier = token
+    payment-amount = 1*DIGIT
+    payment-address = token
+    payment-method-data -token
 
-;token is defined in [RFC7231](#RFC7231)
+    ;token is defined in [RFC7231](#RFC7231)
 </pre>
 <p id="rfc.section.4.1.p.2">The Pay field-value consists of a comma-separated list of payment requests for payment using different payment methods accepted by the sender.</p>
 <p id="rfc.section.4.1.p.3">The fields in the header are:</p>
@@ -535,7 +536,7 @@ payment-method-data -token
 <li>payment-method-identifier: The payment method identifier for the accepted payment method. Either a standardized short-string or a URL.</li>
 <li>payment-amount: The amount that must be paid, expressed as an integer. The currency, scale and precision of the destination account are expected to be expressed in the account address or interprted from the payment mthod data.</li>
 <li>payment-address: A payment-method specific payee address. For example, if the payment method is Bitcoin this would be a Bitcoin address.</li>
-<li>payment-method-data: Payment method specific data. This is either a URI identifying the data or, if it is small enough, is the data itself, BASE64URL encoded as described in <a href="#RFC4648" class="xref">[RFC4648]</a>, Section 5.</li>
+<li>payment-method-data: Optional payment method specific data. This is either a URI identifying the data or, if it is small enough, is the data itself, BASE64URL encoded as described in <a href="#RFC4648" class="xref">[RFC4648]</a>, Section 5.</li>
 </ul>
 <h1 id="rfc.section.4.2">
 <a href="#rfc.section.4.2">4.2.</a> <a href="#the-pay-token-header" id="the-pay-token-header">The "Pay-Token" Header</a>
@@ -543,14 +544,14 @@ payment-method-data -token
 <p id="rfc.section.4.2.p.1">An HTTP client that makes a paid-HTTP request, after paying for the request to be processed, MAY attach a "Pay-Token" header with a token referencing the payment.</p>
 <p id="rfc.section.4.2.p.2">This mechanism can be employed by services wishing to accept payments without binding these to an HTTP session.</p>
 <pre>
-Pay-Token = token
+    Pay-Token = token
 </pre>
 <h1 id="rfc.section.4.3">
 <a href="#rfc.section.4.3">4.3.</a> <a href="#the-pay-balance-header" id="the-pay-balance-header">The "Pay-Balance" Header</a>
 </h1>
 <p id="rfc.section.4.3.p.1">Ann HTTP Service that accepts payments may respond to any request with a "Pay-Balance" header. This contains an integer indicating the current balance of paid credit the client has with the HTTP service.</p>
 <pre>
-Pay-Balance = 1*DIGIT
+    Pay-Balance = 1*DIGIT
 </pre>
 <h1 id="rfc.section.4.4">
 <a href="#rfc.section.4.4">4.4.</a> <a href="#flow" id="flow">Flow</a>
@@ -566,25 +567,25 @@ Pay-Balance = 1*DIGIT
 </h1>
 <p id="rfc.section.4.5.p.1">Client requests access to a paid resource:</p>
 <pre>
-POST /upload HTTP/1.1
-Host: myservice.example
+    POST /upload HTTP/1.1
+    Host: myservice.example
 </pre>
 <p id="rfc.section.4.5.p.2">Server responds with payment request (and optionally indicates that the client has a zero balance):</p>
 <pre>
-HTTP/1.1 402 Payment Required
-Pay: http://interledger.org 10 us.nexus.ankita.~recv.filepay SkTcFTZCBKgP6A6QOUVcwWCCgYIP4rJPHlIzreavHdU
-Pay-Balance: 0
+    HTTP/1.1 402 Payment Required
+    Pay: http://interledger.org 10 us.nexus.ankita.~recv.filepay SkTcFTZCBKgP6A6QOUVcwWCCg
+    Pay-Balance: 0
 </pre>
 <p id="rfc.section.4.5.p.3">Client makes the payment through an appropriate payment side-channel and then attempts the request again:</p>
 <pre>
-POST /upload HTTP/1.1
-Host: myservice.example
-Pay-Token: 7y0SfeN7lCuq0GFF5UsMYZofIjJ7LrvPvsePVWSv450
+    POST /upload HTTP/1.1
+    Host: myservice.example
+    Pay-Token: 7y0SfeN7lCuq0GFF5UsMYZofIjJ7LrvPvsePVWSv450
 </pre>
 <p id="rfc.section.4.5.p.4">Server responds:</p>
 <pre>
-HTTP/1.1 200 Success
-Pay-Balance: 0  
+    HTTP/1.1 200 Success
+    Pay-Balance: 0  
 </pre>
 <h1 id="rfc.references">
 <a href="#rfc.references">5.</a> References</h1>
