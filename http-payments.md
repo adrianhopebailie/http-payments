@@ -58,7 +58,7 @@ The user agent will then, through interaction with the user, complete or reject 
 
 HTTP-Payments describes a manner in which an HTTP server can request payment from a client in the same manner as a website would from a user agent using the W3C APIs.
 
-The critical portion of the payment request is the set of, one or more, supported payment methods and associated payment-method-specific data. HTTP-Payments defines a mechaism by which these are expressed in the response headers of an HTTP request for which the server requires a payment.
+The critical portion of the payment request is the set of, one or more, supported payment methods and associated payment-method-specific data. HTTP-Payments defines a mechanism by which these are expressed in the response headers of an HTTP request for which the server requires a payment.
 
 In the website and user-agent scenario, when handling the payment request, the user-agent will prompt the user to pick one of the supported payment methods and will then handle the payment in a manner that is appropriate for that payment method. In an HTTP-Payment, the HTTP client will perform this function, likely with no user interaction.
 
@@ -105,7 +105,7 @@ The fields in the header are:
 The payment method identifier for the accepted payment method. Either a standardized short-string or a URL.
 
 - payment-amount:
-The amount that must be paid, expressed as an integer. The currency, scale and precision of the destination account are expected to be expressed in the account address or interprted from the payment mthod data.
+The amount that must be paid, expressed as an integer. The currency, scale and precision of the destination account are expected to be expressed in the account address or interpreted from the payment method data.
 
 - payment-address:
 A payment-method specific payee address. For example, if the payment method is Bitcoin this would be a Bitcoin address.
@@ -141,7 +141,7 @@ The client MUST then select the header that is preferred for processing based up
 
 The payment-method specific data SHOULD be sufficient for the system processing the payment to reconcile the payment with the original HTTP request.
 
-The client SHOULD receive a token in return for completeing the payment. If the payment method used does return a token to the payer, it MUST pass this token in subsequent HTTP requests.
+The client SHOULD receive a token in return for completing the payment. If the payment method used does return a token to the payer, it MUST pass this token in subsequent HTTP requests.
 
 The token MUST be passed in the "Pay-Token" header, BASE64URL encoded as described in [RFC4648](#RFC4648), Section 5.
 
